@@ -1,0 +1,127 @@
+# This workflow will build and push a node.js application to an Azure Web App when a commit is pushed to your default branch.
+#
+# This workflow assumes you have already created the target Azure App Service web app.
+# For instructions see https://docs.microsoft.com/en-us/azure/app-service/quickstart-nodejs?tabs=linux&pivots=development-environment-cli
+#
+# To configure this workflow:
+#
+# 1. Download the Publish Profile for your Azure Web App. You can download this file from the Overview page of your Web App in the Azure Portal.
+#    For more information: https://docs.microsoft.com/en-us/azure/app-service/deploy-github-actions?tabs=applevel#generate-deployment-credentials
+#
+# 2. Create a secret in your repository named AZURE_WEBAPP_PUBLISH_PROFILE, paste the publish profile contents as the value of the secret.
+#    For instructions on obtaining the publish profile see: https://docs.microsoft.com/azure/app-service/deploy-github-actions#configure-the-github-secret
+#
+# 3. Change the value for the AZURE_WEBAPP_NAME. Optionally, change the AZURE_WEBAPP_PACKAGE_PATH and NODE_VERSION environment variables below.
+#
+# For more information on GitHub Actions for Azure: https://github.com/Azure/Actions
+# For more information on the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# For more samples to get started with GitHub Action workflows to deploy to Azure: https://github.com/Azure/actions-workflow-samples
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: your-app-name    # set this to your application's name
+  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  NODE_VERSION: '14.x'                # set this to the node version to use
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: npm install, build, and test
+      run: |
+        npm install
+        npm run build --if-present
+        npm run test --if-present
+
+    - name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v3
+      with:
+        name: node-app
+        path: .
+- name: security-devops-action
+  uses: microsoft/security-devops-action@v1.6.0
+  with:
+    # A file path to a .gdnconfig file.
+    config: # optional
+    # The name of the well known policy to use. Defaults to GitHub.
+    policy: # optional, default is GitHub
+    # A comma separated list of analyzer categories to run. Values secrets, code, artifacts, IaC, containers. Example IaC,secrets. Defaults to all.
+    categories: # optional
+    # A comma separated list of languages to analyze. Example javascript, typescript. Defaults to all.
+    languages: # optional
+    # A comma separated list of analyzer tools to run. Example bandit, binskim, eslint, template-analyzer, terrascan, trivy.
+    tools: # optional
+  deploy:
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Development'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v3
+      with:
+        name: node-app
+    - name: Steam - Deploy
+  # You may pin to the exact commit or the version.
+  # uses: game-ci/steam-deploy@94289d803520abba4ca2cca58d6833f7a69f3ab1
+  uses: game-ci/steam-deploy@v2.0.0
+  with:
+    # The username of your builder account.
+    username: # default is 
+    # The password of your builder account.
+    password: # default is 
+    # The TOTP to use for login. If set, `configVdf`, `ssfnFileName`, and `ssfnFileContents` will be ignored.
+    totp: # optional
+    # The contents of STEAM_HOME/config/config.vdf. Required if `totp` is not set.
+    configVdf: # optional
+    # The basename of the STEAM_HOME/ssfn file. Required if `totp` is not set.
+    ssfnFileName: # optional
+    # The contents of the file at STEAM_HOME/ssfnFileName. Required if `totp` is not set.
+    ssfnFileContents: # optional
+    # The app id within steam partner network.
+    appId: # default is 
+    # An optional override to specify the ID of the first depot instead of using the app ID plus one.
+    firstDepotIdOverride: # optional
+    # Description for this build.
+    buildDescription: # optional
+    # The root path to your builds. This is the base of which depots will search your files.
+    rootPath: # optional
+    # The path to depot1.
+    depot1Path: # optional
+    # The path to depot2.
+    depot2Path: # optional
+    # The path to depot3.
+    depot3Path: # optional
+    # The path to depot4.
+    depot4Path: # optional
+    # The path to depot5.
+    depot5Path: # optional
+    # The path to depot6.
+    depot6Path: # optional
+    # The path to depot7.
+    depot7Path: # optional
+    # The path to depot8.
+    depot8Path: # optional
+    # The path to depot9.
+    depot9Path: # optional
+    # The branch within steam that this build will be automatically put live on.
+    releaseBranch: # optional
